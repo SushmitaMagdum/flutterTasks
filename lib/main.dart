@@ -1,30 +1,35 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'package:flutter/material.dart';
+import 'home_page.dart';
+import 'forget_password_page.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(MyApp());
 }
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: MyHomePage(title: 'Sign-In Page'),
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: LoginDemo(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-  final String title;
+class LoginDemo extends StatefulWidget {
+  const LoginDemo({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<LoginDemo> createState() => _LoginDemoState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _LoginDemoState extends State<LoginDemo> {
+  String userEmail = "";
+  String userPassword = "";
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -46,29 +51,44 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ),
             ),
-            const Padding(
+            Padding(
               padding: EdgeInsets.symmetric(horizontal: 15),
               child: TextField(
                 decoration: InputDecoration(
-                    border: OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.black),
+                    ),
                     labelText: 'Email',
                     hintText: 'Enter valid email id as abc@gmail.com'),
+                onChanged: (value) {
+                  userEmail = value;
+                },
               ),
             ),
-            const Padding(
+            Padding(
               padding:
                   EdgeInsets.only(left: 15.0, right: 15.0, top: 15, bottom: 0),
-              //padding: EdgeInsets.symmetric(horizontal: 15),
               child: TextField(
                 obscureText: true,
                 decoration: InputDecoration(
-                    border: OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Colors.black),
+                    ),
                     labelText: 'Password',
                     hintText: 'Enter secure password'),
+                onChanged: (value) {
+                  userPassword = value;
+                },
               ),
             ),
             TextButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => const ForgetPassPage()),
+                );
+              },
               child: const Text(
                 'Forgot Password',
                 style: TextStyle(color: Colors.black, fontSize: 15),
@@ -80,7 +100,17 @@ class _MyHomePageState extends State<MyHomePage> {
               decoration: BoxDecoration(
                   color: Colors.black, borderRadius: BorderRadius.circular(20)),
               child: TextButton(
-                onPressed: () {},
+                onPressed: () {
+                  if (isValidEmail()) {
+                    if (isValidPassword()) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const HomePage()),
+                      );
+                    }
+                  }
+                },
                 child: const Text(
                   'Login',
                   style: TextStyle(color: Colors.white, fontSize: 25),
@@ -92,4 +122,56 @@ class _MyHomePageState extends State<MyHomePage> {
       ),
     );
   }
+
+  bool isValidEmail() {
+    RegExp regex = RegExp(
+        r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+");
+    if (userEmail.isEmpty) {
+      showAlertDialog(context, "Please Enter Your Email..");
+    } else if (!(regex.hasMatch(userEmail))) {
+      showAlertDialog(context, "Invalid Email..");
+    } else {
+      return true;
+    }
+    return false;
+  }
+
+  bool isValidPassword() {
+    RegExp regex =
+        RegExp(r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[!@#\$&*~]).{8,}$');
+    if (userPassword.isEmpty) {
+      showAlertDialog(context, "Please Enter Your Password..");
+    } else if (!(regex.hasMatch(userPassword))) {
+      showAlertDialog(context, "Invalid Password..");
+    } else {
+      return true;
+    }
+    return false;
+  }
+}
+
+showAlertDialog(BuildContext context, String errorMsg) {
+  Widget okButton = TextButton(
+    child: Text("OK"),
+    onPressed: () {
+      Navigator.of(context).pop();
+    },
+  );
+
+  AlertDialog alert = AlertDialog(
+    title: Text(
+      "Warning",
+      style: TextStyle(color: Colors.red, fontSize: 15),
+    ),
+    content: Text(errorMsg),
+    actions: [
+      okButton,
+    ],
+  );
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return alert;
+    },
+  );
 }
