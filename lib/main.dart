@@ -1,9 +1,11 @@
-// ignore_for_file: prefer_const_constructors
+// ignore_for_file: prefer_const_constructors, avoid_print
 
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'home_page.dart';
 import 'forget_password_page.dart';
 
+String finalEmail = "";
 void main() {
   runApp(MyApp());
 }
@@ -28,8 +30,32 @@ class LoginDemo extends StatefulWidget {
 }
 
 class _LoginDemoState extends State<LoginDemo> {
+  @override
+  void initState() {
+    checkUserLoggedIn().whenComplete(() async {
+      if (finalEmail.isNotEmpty) {
+        await Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const HomePage()),
+        );
+      }
+    });
+    super.initState();
+  }
+
+  Future checkUserLoggedIn() async {
+    final SharedPreferences sharedPreferences =
+        await SharedPreferences.getInstance();
+    var email = sharedPreferences.getString('email');
+    setState(() {
+      finalEmail = email!;
+    });
+    print(finalEmail);
+  }
+
   String userEmail = "";
   String userPassword = "";
+  final focus = FocusNode();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,7 +79,10 @@ class _LoginDemoState extends State<LoginDemo> {
             ),
             Padding(
               padding: EdgeInsets.symmetric(horizontal: 15),
-              child: TextField(
+              child: TextFormField(
+                onFieldSubmitted: (v) {
+                  FocusScope.of(context).requestFocus(focus);
+                },
                 decoration: InputDecoration(
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(color: Colors.black),
@@ -68,8 +97,11 @@ class _LoginDemoState extends State<LoginDemo> {
             Padding(
               padding:
                   EdgeInsets.only(left: 15.0, right: 15.0, top: 15, bottom: 0),
-              child: TextField(
+              child: TextFormField(
                 obscureText: true,
+                onFieldSubmitted: (v) {
+                  FocusScope.of(context).requestFocus(focus);
+                },
                 decoration: InputDecoration(
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(color: Colors.black),
@@ -100,9 +132,14 @@ class _LoginDemoState extends State<LoginDemo> {
               decoration: BoxDecoration(
                   color: Colors.black, borderRadius: BorderRadius.circular(20)),
               child: TextButton(
-                onPressed: () {
+                onPressed: () async {
+                  FocusScope.of(context).unfocus();
                   if (isValidEmail()) {
                     if (isValidPassword()) {
+                      final SharedPreferences sharedPreferences =
+                          await SharedPreferences.getInstance();
+                      sharedPreferences.setString('email', userEmail);
+                      // ignore: use_build_context_synchronously
                       Navigator.push(
                         context,
                         MaterialPageRoute(
